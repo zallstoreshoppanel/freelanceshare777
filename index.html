@@ -67,12 +67,7 @@
       <a class="btn btn-wa" onclick="shareWA()">Share ke WhatsApp</a>
     </div>
 
-    <div class="card">
-      <h3>Referral / Invite</h3>
-      <p>1 orang daftar via link anda = +100</p>
-      <p>Kode anda: <span id="inviteCode" style="color:#facc15;font-weight:bold;"></span></p>
-      <p>Link anda: <span id="inviteLink" style="color:#38bdf8;word-break:break-all;"></span></p>
-    </div>
+    
 
     <div class="card">
       <h3>Penarikan</h3>
@@ -189,10 +184,7 @@
       totalPendapatan += 50;
       saveData();
       updateUI();
-
-      let link = "https://t.me/share/url?url=" + encodeURIComponent("https://t.me/byzalls") +
-                 "&text=" + encodeURIComponent("Join group ini biar dapat cuan!");
-      window.open(link, "_blank");
+      window.open("https://t.me/byzalls", "_blank");
     }
 
     function shareWA() {
@@ -200,9 +192,7 @@
       totalPendapatan += 50;
       saveData();
       updateUI();
-
-      let link = "https://wa.me/?text=" + encodeURIComponent("Join group ini biar dapat cuan! https://t.me/byzalls");
-      window.open(link, "_blank");
+      window.open("https://wa.me/?text=Join%20Group%20Telegram%20ini%20https://t.me/byzalls", "_blank");
     }
 
     function withdraw() {
@@ -263,5 +253,4 @@
     showPopup();
   </script>
 </body>
-        </html>
-                                                                   
+</html>
