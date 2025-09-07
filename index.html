@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no">
+  <title>Freelance Share Job</title>
+  <style>
+    body {margin:0;font-family:Arial,sans-serif;background:#0f172a;color:white;}
+    .container{padding:20px;}
+    .hidden{display:none;}
+    h2{margin-bottom:15px;}
+    .card{background:#1e293b;padding:15px;border-radius:10px;margin-bottom:20px;box-shadow:0 2px 6px rgba(0,0,0,0.3);}
+    .btn{display:inline-block;padding:10px 15px;margin:5px 0;border-radius:8px;cursor:pointer;text-decoration:none;color:white;font-weight:bold;text-align:center;}
+    .btn-telegram{background:#229ED9;}
+    .btn-wa{background:#25D366;}
+    .btn-wd{background:#3b82f6;width:100%;}
+    .btn-daftar{background:#22c55e;width:100%;}
+    input,select{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:none;font-size:1em;}
+    .saldo{font-size:1.3em;font-weight:bold;color:#22c55e;}
+    .riwayat-item{border-bottom:1px solid #334155;padding:8px 0;}
+    .status-menunggu{color:#facc15;}
+    .status-diterima{color:#22c55e;}
+    .popup{position:fixed;bottom:20px;left:20px;background:rgba(0,0,0,0.7);color:#fff;padding:12px 16px;border-radius:10px;font-size:0.9em;opacity:0;transition:opacity 0.5s ease;z-index:9999;box-shadow:0 4px 10px rgba(0,0,0,0.4);}
+    .popup.show{opacity:1;}
+  </style>
+</head>
+<body>
+  <!-- Halaman Registrasi -->
+  <div id="registerPage" class="container">
+    <h2>Daftar Freelance</h2>
+    <div class="card">
+      <label>Username</label>
+      <input type="text" id="username" placeholder="Masukkan username" required>
+      <label>No. HP</label>
+      <input type="text" id="phone" placeholder="Masukkan no. HP" required>
+      <label>Pilih Bank / E-Wallet</label>
+      <select id="bank">
+        <option value="BCA">BCA</option>
+        <option value="BRI">BRI</option>
+        <option value="BNI">BNI</option>
+        <option value="Mandiri">Mandiri</option>
+        <option value="Dana">Dana</option>
+        <option value="OVO">OVO</option>
+        <option value="Gopay">Gopay</option>
+        <option value="ShopeePay">ShopeePay</option>
+      </select>
+      <label>No. Rekening / E-Wallet</label>
+      <input type="text" id="norek" placeholder="Masukkan nomor" required>
+      <label>Nama Pemilik Rekening / E-Wallet</label>
+      <input type="text" id="namaPemilik" placeholder="Nama lengkap" required>
+      <button class="btn btn-daftar" onclick="register()">Daftar</button>
+    </div>
+  </div>
+
+  <!-- Halaman Dashboard -->
+  <div id="dashboardPage" class="container hidden">
+    <h2>Freelance Share Job</h2>
+    
+    <div class="card">
+      <p><b>👥 Pengguna Terdaftar:</b> <span id="userCount">500</span></p>
+    </div>
+
+    <div class="card">
+      <p><b>Saldo Anda:</b> <span class="saldo" id="saldo">Rp 0</span></p>
+      <p>Setiap share link dibayar Rp 50</p>
+      <a class="btn btn-telegram" onclick="shareTelegram()">Share ke Telegram</a>
+      <a class="btn btn-wa" onclick="shareWA()">Share ke WhatsApp</a>
+    </div>
+
+    <div class="card">
+      <h3>Referral / Invite</h3>
+      <p>1 orang daftar via link anda = +100</p>
+      <p>Kode anda: <span id="inviteCode" style="color:#facc15;font-weight:bold;"></span></p>
+      <p>Link anda: <span id="inviteLink" style="color:#38bdf8;word-break:break-all;"></span></p>
+    </div>
+
+    <div class="card">
+      <h3>Penarikan</h3>
+      <p>Minimal WD: Rp 100.000</p>
+      <button class="btn btn-wd" onclick="withdraw()">Kirim Permintaan WD</button>
+    </div>
+
+    <div class="card">
+      <h3>Ringkasan Keuangan</h3>
+      <p>Total Pendapatan: <span id="totalPendapatan">Rp 0</span></p>
+      <p>Total Penarikan (dalam proses): <span id="totalProses">Rp 0</span></p>
+      <p>Total Penarikan (diterima): <span id="totalDiterima">Rp 0</span></p>
+    </div>
+
+    <div class="card">
+      <h3>Riwayat Penarikan</h3>
+      <div id="riwayat"></div>
+    </div>
+  </div>
+
+  <!-- Popup Notifikasi -->
+  <div id="popup" class="popup"></div>
+
+  <script>
+    // === CEK REFERRAL LINK ===
+    let urlParams = new URLSearchParams(window.location.search);
+    let ref = urlParams.get("ref");
+
+    // === DATA USER ===
+    let userData = JSON.parse(localStorage.getItem("userData")) || null;
+    let saldo = userData ? userData.saldo : 0;
+    let totalPendapatan = userData ? userData.totalPendapatan : 0;
+    let totalProses = userData ? userData.totalProses : 0;
+    let totalDiterima = userData ? userData.totalDiterima : 0;
+    let riwayat = JSON.parse(localStorage.getItem("riwayat")) || [];
+
+    if(userData){
+      document.getElementById("registerPage").classList.add("hidden");
+      document.getElementById("dashboardPage").classList.remove("hidden");
+    }
+
+    // === JUMLAH USER ===
+    let userCount = parseInt(localStorage.getItem("userCount")) || 500;
+    document.getElementById("userCount").innerText = userCount.toLocaleString();
+    setInterval(() => {
+      let tambah = Math.floor(Math.random() * 5) + 1;
+      userCount += tambah;
+      localStorage.setItem("userCount", userCount);
+      document.getElementById("userCount").innerText = userCount.toLocaleString();
+    }, 60000);
+
+    function register() {
+      let nextId = parseInt(localStorage.getItem("lastUserId")) || 10000;
+      nextId++;
+      localStorage.setItem("lastUserId", nextId);
+
+      let data = {
+        username: document.getElementById("username").value,
+        phone: document.getElementById("phone").value,
+        bank: document.getElementById("bank").value,
+        norek: document.getElementById("norek").value,
+        namaPemilik: document.getElementById("namaPemilik").value,
+        kode: nextId,
+        saldo: 0,
+        totalPendapatan: 0,
+        totalProses: 0,
+        totalDiterima: 0
+      };
+
+      // === Simpan user baru
+      localStorage.setItem("userData", JSON.stringify(data));
+      let allUsers = JSON.parse(localStorage.getItem("allUsers")) || {};
+      allUsers[data.kode] = data;
+      localStorage.setItem("allUsers", JSON.stringify(allUsers));
+
+      // === Referral bonus
+      if(ref){
+        let allUsers = JSON.parse(localStorage.getItem("allUsers")) || {};
+        if(allUsers[ref]){
+          allUsers[ref].saldo += 100;
+          allUsers[ref].totalPendapatan += 100;
+          localStorage.setItem("allUsers", JSON.stringify(allUsers));
+        }
+      }
+
+      location.reload();
+    }
+
+    function updateUI() {
+      if(userData){
+        document.getElementById("inviteCode").innerText = userData.kode;
+        document.getElementById("inviteLink").innerText = window.location.origin + window.location.pathname + "?ref=" + userData.kode;
+      }
+      document.getElementById("saldo").innerText = "Rp " + saldo.toLocaleString();
+      document.getElementById("totalPendapatan").innerText = "Rp " + totalPendapatan.toLocaleString();
+      document.getElementById("totalProses").innerText = "Rp " + totalProses.toLocaleString();
+      document.getElementById("totalDiterima").innerText = "Rp " + totalDiterima.toLocaleString();
+
+      let riwayatDiv = document.getElementById("riwayat");
+      riwayatDiv.innerHTML = "";
+      riwayat.forEach(item => {
+        riwayatDiv.innerHTML += `
+          <div class="riwayat-item">
+            <p>💰 Rp ${item.jumlah.toLocaleString()}</p>
+            <p>📅 ${item.tanggal}</p>
+            <p class="${item.status === 'Menunggu' ? 'status-menunggu' : 'status-diterima'}">${item.status}</p>
+          </div>
+        `;
+      });
+    }
+
+    function shareTelegram() {
+      saldo += 50;
+      totalPendapatan += 50;
+      saveData();
+      updateUI();
+      window.open("https://t.me/byzalls", "_blank");
+    }
+
+    function shareWA() {
+      saldo += 50;
+      totalPendapatan += 50;
+      saveData();
+      updateUI();
+      window.open("https://wa.me/?text=Join%20Group%20Telegram%20ini%20https://t.me/byzalls", "_blank");
+    }
+
+    function withdraw() {
+      if (saldo >= 100000) {
+        let tanggal = new Date().toLocaleString();
+        let wd = { jumlah: saldo, tanggal: tanggal, status: "Menunggu" };
+        riwayat.unshift(wd);
+        totalProses += saldo;
+        saldo = 0;
+        saveData();
+        updateUI();
+
+        alert("Permintaan WD berhasil dikirim, menunggu konfirmasi.");
+
+        setTimeout(() => {
+          wd.status = "Diterima";
+          totalProses -= wd.jumlah;
+          totalDiterima += wd.jumlah;
+          saveData();
+          updateUI();
+        }, 60000);
+      } else {
+        alert("Saldo belum cukup untuk WD (minimal Rp 100.000).");
+      }
+    }
+
+    function saveData() {
+      if(userData){
+        userData.saldo = saldo;
+        userData.totalPendapatan = totalPendapatan;
+        userData.totalProses = totalProses;
+        userData.totalDiterima = totalDiterima;
+
+        localStorage.setItem("userData", JSON.stringify(userData));
+
+        let allUsers = JSON.parse(localStorage.getItem("allUsers")) || {};
+        allUsers[userData.kode] = userData;
+        localStorage.setItem("allUsers", JSON.stringify(allUsers));
+      }
+      localStorage.setItem("riwayat", JSON.stringify(riwayat));
+    }
+
+    updateUI();
+
+    // === POPUP WD RANDOM ===
+    const namaOrang = ["Budi","Andi","Siti","Rina","Agus","Dewi","Rudi","Tono","Lina","Hendra","Fitri","Bayu","Nanda","Rizki","Wulan"];
+    function showPopup() {
+      let popup = document.getElementById("popup");
+      let nama = namaOrang[Math.floor(Math.random() * namaOrang.length)];
+      let jumlah = Math.floor(Math.random() * 400000) + 100000;
+      popup.innerHTML = `💸 ${nama} baru saja WD Rp ${jumlah.toLocaleString()}`;
+      popup.classList.add("show");
+
+      setTimeout(() => { popup.classList.remove("show"); }, 4000);
+      let next = Math.floor(Math.random() * 5000) + 5000;
+      setTimeout(showPopup, next);
+    }
+    showPopup();
+  </script>
+</body>
+</html>
