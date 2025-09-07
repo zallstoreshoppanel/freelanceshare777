@@ -189,7 +189,10 @@
       totalPendapatan += 50;
       saveData();
       updateUI();
-      window.open("https://t.me/byzalls", "_blank");
+
+      let link = "https://t.me/share/url?url=" + encodeURIComponent("https://t.me/byzalls") +
+                 "&text=" + encodeURIComponent("Join group ini biar dapat cuan!");
+      window.open(link, "_blank");
     }
 
     function shareWA() {
@@ -197,7 +200,9 @@
       totalPendapatan += 50;
       saveData();
       updateUI();
-      window.open("https://wa.me/?text=Join%20Group%20Telegram%20ini%20https://t.me/byzalls", "_blank");
+
+      let link = "https://wa.me/?text=" + encodeURIComponent("Join group ini biar dapat cuan! https://t.me/byzalls");
+      window.open(link, "_blank");
     }
 
     function withdraw() {
@@ -258,4 +263,5 @@
     showPopup();
   </script>
 </body>
-</html>
+        </html>
+                                                                   
